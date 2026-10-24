@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10233f">
+  <title>Bus Fees Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">🚌</div><div><strong>RouteLedger</strong><small>BUS FEES MANAGER</small></div></div>
+    <nav>
+      <button class="nav-link active" data-view="dashboard">▦ <span>Dashboard</span></button>
+      <button class="nav-link" data-view="students">♙ <span>Students</span></button>
+      <button class="nav-link" data-view="payments">₹ <span>Fee Payments</span></button>
+      <button class="nav-link" data-view="routes">⇄ <span>Routes & Buses</span></button>
+    </nav>
+    <div class="sidebar-bottom"><div class="status-dot"></div><span>Data saved on this device</span></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div><div class="eyebrow">SCHOOL TRANSPORT</div><h1 id="page-title">Dashboard</h1></div>
+      <div class="top-actions"><span class="today" id="today"></span><button class="btn btn-primary" id="quick-add">＋ Add student</button></div>
+    </header>
+    <section id="dashboard-view" class="view">
+      <div class="welcome"><div><div class="eyebrow light">TRANSPORT ACCOUNTS</div><h2>Fee collection, made simple.</h2><p>Track student transport fees, payments, and outstanding balances.</p></div><div class="welcome-icon">🚌</div></div>
+      <div class="stats">
+        <article class="stat-card"><div class="stat-label">TOTAL STUDENTS</div><div class="stat-value" id="stat-students">0</div><div class="stat-note">Registered on routes</div></article>
+        <article class="stat-card"><div class="stat-label">FEES COLLECTED</div><div class="stat-value" id="stat-collected">₹0</div><div class="stat-note">All recorded payments</div></article>
+        <article class="stat-card"><div class="stat-label">OUTSTANDING DUES</div><div class="stat-value" id="stat-due">₹0</div><div class="stat-note">Balance still to collect</div></article>
+        <article class="stat-card"><div class="stat-label">THIS MONTH</div><div class="stat-value" id="stat-month">₹0</div><div class="stat-note">Payments received this month</div></article>
+      </div>
+      <div class="section-heading"><div><h3>Recent fee payments</h3><p>Latest transactions recorded</p></div><button class="btn btn-outline" data-goto="payments">View all payments →</button></div>
+      <div class="table-wrap"><table><thead><tr><th>STUDENT</th><th>RECEIPT</th><th>DATE</th><th>PAYMENT METHOD</th><th>AMOUNT</th></tr></thead><tbody id="recent-payments"></tbody></table><div class="empty" id="recent-empty">No payments yet. Add a student and record a payment to get started.</div></div>
+      <div class="section-heading due-heading"><div><h3>Students with outstanding dues</h3><p>Follow up on pending transport fees</p></div><button class="btn btn-outline" data-goto="students">View students →</button></div>
+      <div class="table-wrap"><table><thead><tr><th>STUDENT</th><th>CLASS</th><th>ROUTE</th><th>FEE / MONTH</th><th>BALANCE DUE</th></tr></thead><tbody id="due-students"></tbody></table><div class="empty" id="due-empty">Great! No outstanding dues found.</div></div>
+    </section>
+    <section id="students-view" class="view hidden">
+      <div class="toolbar"><div><h3>Student directory</h3><p>Manage student details and monthly bus fees.</p></div><button class="btn btn-primary" id="add-student">＋ Add student</button></div>
+      <div class="filters"><input id="student-search" placeholder="Search name, ID, class, route…" aria-label="Search students"><select id="student-route-filter" aria-label="Filter by route"><option value="">All routes</option></select><button class="btn btn-outline" id="export-students">Export CSV ↓</button></div>
+      <div class="table-wrap"><table><thead><tr><th>STUDENT</th><th>CLASS</th><th>GUARDIAN / PHONE</th><th>ROUTE</th><th>MONTHLY FEE</th><th>BALANCE DUE</th><th>ACTIONS</th></tr></thead><tbody id="students-table"></tbody></table><div class="empty" id="students-empty">No students found. Add your first student.</div></div>
+    </section>
+    <section id="payments-view" class="view hidden">
+      <div class="toolbar"><div><h3>Fee payment history</h3><p>Receipts and payment records for all students.</p></div><button class="btn btn-primary" id="record-payment">＋ Record payment</button></div>
+      <div class="filters"><input id="payment-search" placeholder="Search student or receipt…" aria-label="Search payments"><button class="btn btn-outline" id="export-payments">Export CSV ↓</button></div>
+      <div class="table-wrap"><table><thead><tr><th>RECEIPT</th><th>STUDENT</th><th>DATE</th><th>MONTH(S)</th><th>METHOD</th><th>AMOUNT</th><th>NOTE</th></tr></thead><tbody id="payments-table"></tbody></table><div class="empty" id="payments-empty">No payments recorded yet.</div></div>
+    </section>
+    <section id="routes-view" class="view hidden">
+      <div class="toolbar"><div><h3>Routes & buses</h3><p>Set up the routes used by your school transport service.</p></div><button class="btn btn-primary" id="add-route">＋ Add route</button></div>
+      <div class="route-grid" id="route-grid"></div>
+      <div class="note-box"><strong>Heads up</strong><p>Monthly fee balances are calculated from the student's monthly fee × fee months assigned, minus all recorded payments. This starter version does not automatically create monthly invoices.</p></div>
+    </section>
+  </main>
+
+  <dialog id="student-dialog">
+    <form id="student-form" method="dialog">
+      <div class="modal-head"><div><div class="eyebrow">STUDENT RECORD</div><h2 id="student-modal-title">Add student</h2></div><button type="button" class="close-btn" data-close="student-dialog">×</button></div>
+      <input type="hidden" id="student-id">
+      <div class="form-grid">
+        <label>Student name *<input id="s-name" required maxlength="80" placeholder="e.g. Aarav Sharma"></label>
+        <label>Admission / student ID *<input id="s-code" required maxlength="30" placeholder="e.g. STU-1001"></label>
+        <label>Class / grade *<input id="s-class" required maxlength="30" placeholder="e.g. Class 6 - A"></label>
+        <label>Guardian name<input id="s-guardian" maxlength="80" placeholder="Parent or guardian"></label>
+        <label>Guardian phone<input id="s-phone" inputmode="tel" maxlength="20" placeholder="Phone number"></label>
+        <label>Route *<select id="s-route" required></select></label>
+        <label>Monthly fee (₹) *<input id="s-fee" required type="number" min="0" step="1" value="1000"></label>
+        <label>Fee months assigned *<input id="s-months" required type="number" min="1" max="24" step="1" value="12"></label>
+      </div>
+      <div class="modal-actions"><button type="button" class="btn btn-outline" data-close="student-dialog">Cancel</button><button class="btn btn-primary" type="submit">Save student</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="payment-dialog">
+    <form id="payment-form" method="dialog">
+      <div class="modal-head"><div><div class="eyebrow">FEE COLLECTION</div><h2>Record payment</h2></div><button type="button" class="close-btn" data-close="payment-dialog">×</button></div>
+      <label>Student *<select id="p-student" required></select></label>
+      <div class="form-grid">
+        <label>Amount received (₹) *<input id="p-amount" type="number" min="1" step="1" required placeholder="e.g. 1500"></label>
+        <label>Payment date *<input id="p-date" type="date" required></label>
+        <label>Fee month(s)<input id="p-months" maxlength="80" placeholder="e.g. April–May 2026"></label>
+        <label>Payment method<select id="p-method"><option>Cash</option><option>UPI</option><option>Bank transfer</option><option>Cheque</option><option>Other</option></select></label>
+      </div>
+      <label>Note (optional)<input id="p-note" maxlength="160" placeholder="Reference or additional details"></label>
+      <p class="form-hint" id="payment-balance-hint">Choose a student to see their current balance.</p>
+      <div class="modal-actions"><button type="button" class="btn btn-outline" data-close="payment-dialog">Cancel</button><button class="btn btn-primary" type="submit">Save payment</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="route-dialog">
+    <form id="route-form" method="dialog">
+      <div class="modal-head"><div><div class="eyebrow">TRANSPORT SETUP</div><h2>Add route</h2></div><button type="button" class="close-btn" data-close="route-dialog">×</button></div>
+      <label>Route name *<input id="r-name" required maxlength="60" placeholder="e.g. Route 1 - City Centre"></label>
+      <label>Bus number / vehicle *<input id="r-bus" required maxlength="30" placeholder="e.g. UK 05 AB 1234"></label>
+      <label>Driver name<input id="r-driver" maxlength="80" placeholder="Driver name"></label>
+      <label>Route description<input id="r-desc" maxlength="160" placeholder="Stops or area covered"></label>
+      <div class="modal-actions"><button type="button" class="btn btn-outline" data-close="route-dialog">Cancel</button><button class="btn btn-primary" type="submit">Save route</button></div>
+    </form>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <footer>RouteLedger · Bus Fees Manager <span>Local demo · Export backups regularly</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
